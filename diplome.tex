@@ -52,7 +52,7 @@
 
 \subsection{Overview}
 
-\begin{figure}
+\begin{figure}[hbt]
 \centering
 \includegraphics[scale=0.8]{mirage-stack.pdf}
 \caption{Contrasting software layers in existing VM appliances vs.
@@ -162,7 +162,7 @@ It is impossible for a distributed system to simultaneously provide all three of
 
 The modern answer to solve this paradox is to maintain availability but relax the consistency model.
 Most of the large-scale distributed system assume there is no unique global state of the system, which result in a class of system said to be \emph{eventually consistent}\cite{EventuallyConsistentTransactions2012}.
-\irmin follows an other approach to relax the consistency model, inspired by distributed version control system such as \git and \mercurial.
+The approach of \irmin to relax the consistency model is inspired by distributed version control system such as \git and \mercurial.
 Every actor own a branch representing a partial replica of the global database.
 Modifications are local and happened only on the current branch.
 Branches can explicitly be merge in order to recover the consistency property, using application-defined merge policies between replicas.
@@ -189,7 +189,7 @@ The study and the design of such tools is one of the main goals of my internship
 
 \subsection{Architecture}
 
-\begin{figure}
+\begin{figure}[hbt]
 \begin{lstlisting}
 module type S = sig
   type t
@@ -242,22 +242,6 @@ That is why the purpose of my work is not to compete with existing implementatio
 
 \subsection{Queues}
 
-\begin{figure}
-\begin{lstlisting}
-type index = {              type node = {
-  push: int;                  next: K.t option;
-  pop: int;                   previous: K.t option;
-  top: K.t;                   elt: K.t option;
-  bottom: K.t;                branch: index option;
-} with compare, sexp        } with compare, sexp
-
-type elt = Index of index | Node of node | Elt of V.t
-           with compare, sexp
-\end{lstlisting}
-\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
-\label{queue}
-\end{figure}
-
 There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
 However, \irmin is built on an append-only low-level store.
 Such representation of the memory matches well with the functional programming model where the memory is immutable.
@@ -269,7 +253,6 @@ Then the pop list is empty, the push list is flush into the pop one.
 This operation is called \emph{normalization}.
 Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
 That is why the amortized cost of operations on the queue is $O(1)$.
-
 
 \paragraph{Internal structure}
 The implementation of mergeable queues is based on an \irmin store containing three types of element: \code{Index}, \code{Node} and \code{Elt}. Their type declarations are given in figure~\ref{queue}.
@@ -285,7 +268,6 @@ They are composed of four optional elements, \code{next}, \code{previous}, \code
 
 Finally, \code{Elt} is containing elements added in the queue.
 
-
 \paragraph{Major operations}
 The two first main operations on a queue are push and pop.
 The push operation adds a new \code{Elt} containing the pushed value, and a \code{Node} pointing to this element and the previous bottom element of the queue.
@@ -299,10 +281,42 @@ The other main operation is the merging one.
 The merging operation take three arguments: two queues to be merged \code{q1} and \code{q2}, and a common ancestor to those two queue called \code{old}.
 The resulting queue -- called \code{new} -- has to reflect the transformations from \code{old} to both \code{q1} and \code{q2}. First, element of a \code{old} which have been removed from \code{q2} are removed from \code{q1}. This is done without accessing these element by using the \code{push} and \code{pop} values. In the same way, all elements of \code{old} which are still in \code{q2} are removed. Then, \code{q2} is concatenate at the end of \code{q1} by adding a new node where the field \code{branch} contain the index of \code{q2}. In the worst case the merge operation uses a number of read linear in the size of \code{old}, but always only one write.
 
+\begin{figure}[hbt]
+\begin{lstlisting}
+type index = {              type node = {
+  push: int;                  next: K.t option;
+  pop: int;                   previous: K.t option;
+  top: K.t;                   elt: K.t option;
+  bottom: K.t;                branch: index option;
+} with compare, sexp        } with compare, sexp
+
+type elt = Index of index | Node of node | Elt of V.t
+           with compare, sexp
+\end{lstlisting}
+\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
+\label{queue}
+\end{figure}
 
 \subsection{Ropes}
 
-\begin{figure}
+\paragraph{General description}
+A rope is a data structure that is used for efficiently storing and manipulating a very long string.
+A rope is a binary tree having leaf nodes that contain a short string.
+Each node has an index equal to the sum of the length of each strings in its left subtree.
+Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
+The binary tree can be seen as several levels of nodes.
+The bottom level contains all the nodes that contain a string when higher levels have fewer and fewer nodes.
+The top level consists of a single \emph{root} node.
+
+The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexity} compares the complexity of these operations for a rope and a string.
+
+If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
+In fact, I design the ropes with the following idea:
+"give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
+That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
+Indeed, because such a rope can be built on any type of container, it is impossible to have a general way to merge it.
+
+\begin{figure}[hbt]
 \centering
 \setlength{\tabcolsep}{1cm}
 \begin{tabular}{|c|c|c|}
@@ -341,30 +355,6 @@ The resulting queue -- called \code{new} -- has to reflect the transformations f
 \label{complexity}
 \end{figure}
 
-\paragraph{General description}
-A rope is a data structure that is used for efficiently storing and manipulating a very long string.
-A rope is a binary tree having leaf nodes that contain a short string.
-Each node has an index equal to the sum of the length of each strings in its left subtree.
-Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
-The binary tree can be seen as several levels of nodes.
-The bottom level contains all the nodes that contain a string when higher levels have fewer and fewer nodes.
-The top level consists of a single \emph{root} node.
-
-The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexity} compares the complexity of these operations for a rope and a string.
-
-If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
-In fact, I design the ropes with the following idea:
-"give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
-That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
-Indeed, because such a rope can be built on any type of container, it is impossible to have a general way to merge it.
-
-\begin{figure}
-\centering
-\includegraphics[scale=0.6]{rotations.pdf}
-\caption{Generic tree rotation. A tree rotation moves one node up in the tree and one node down.}
-\label{rotation}
-\end{figure}
-
 \paragraph{Implementation overview}
 The implementation of mergeable ropes is quite straightforward, in the sense that it follows the previous description.
 The tree containing the rope is a self-balancing binary search tree which keep a factor two between its minimal and maximal depth.
@@ -387,6 +377,13 @@ However, the balancing propriety reduces this effectiveness.
 Indeed, the internal structure of a tree can be deeply modified during a rebalancing operation, making impossible to compare potentially large subtrees.
 In order to minimize the scope of rebalancing operations, the rotation function is applied as less as possible, and only on the smallest unbalanced subtree.
 Due to this restriction, the impact on the merge function efficiency is proportional to the volume of modifications produced by  an operation.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{rotations.pdf}
+\caption{Generic tree rotation. A tree rotation moves one node up in the tree and one node down.}
+\label{rotation}
+\end{figure}
 
 \subsection{Future works}
 

@@ -8,23 +8,17 @@
 \usepackage{courier}
 \usepackage{charter}
 \usepackage{xspace}
-\usepackage{lipsum}
 
 \input{caml.tex}
 
-%\usepackage{appendix}
 \usepackage[toc, nonumberlist, nopostdot]{glossaries}
 \loadglsentries{glossary}
 \makeglossaries
 
-%\usepackage{ulem}
 \usepackage[colorlinks=true, citecolor=black, linkcolor=black, urlcolor=blue]{hyperref}
 
 \usepackage{enumitem}
 \setlist{itemsep=0mm}
-
-\usepackage{hyphenat}
-\renewcommand{\-}{\hyp}
 
 \usepackage{colortbl}
 
@@ -38,6 +32,7 @@
 \newcommand{\mercurial}{Mercurial\xspace}
 \newcommand{\mirage}{Mirage\xspace}
 \newcommand{\ocaml}{OCaml\xspace}
+\newcommand{\opam}{OPAM\xspace}
 \newcommand{\xen}{Xen\xspace}
 
 \newcommand{\code}[1]{\texttt{#1}}
@@ -48,8 +43,6 @@
 \tableofcontents
 
 \section[\mirage, an \ocaml-based unikernel system]{\mirage, an \ocaml-based unikernel system\\\normalsize\normalfont(based on the \href{http://openmirage.org}{\texttt{openmirage.org}} website)}
-
-%\subsection{Overview}
 
 \begin{figure}[hbt]
 \centering
@@ -65,10 +58,10 @@ But many of those virtual machines are single-purpose and yet they contain large
 \mirage represents a new approach where only the necessary components of the OS are included and compiled along with the application into a unikernel.
 This results in highly efficient appliances that can be deployed directly to the cloud and embedded devices, with the benefits of reduced costs and increased security and scalability. The figure~\ref{miragestackgraph} explicit the gain of unikernel compared to standard kernels.
 
-\mirage is a \emph{library operating system}\cite{LibraryOperatingSystemsCloud2013} for constructing secure, high-performance network applications across a variety of cloud computing and mobile platforms.
+\mirage is a \emph{library operating system}\cite{LibraryOperatingSystemsCloud2013} designed for constructing secure, high-performance network applications across a variety of cloud computing and mobile platforms.
 It is based around the \xen hypervisor and the \ocaml langage.
-\xen\cite{XenArtVirtualization2003} provides a stable hardware platform, which avoids the need to support the thousands of device drivers found in a traditional OS.
-Thanks to \ocaml\cite{CreatingFunctionalInternet2007}, code can be developed in a high-level functional programming language which avoids many of usual flaws.
+\xen provides a stable hardware platform\cite{XenArtVirtualization2003}, which avoids the need to support the thousands of device drivers found in a traditional OS.
+Thanks to \ocaml, code can be developed in a high-level functional programming language which avoids many of usual flaws\cite{CreatingFunctionalInternet2007}.
 It is then compiled into a fully-standalone, specialised unikernel which can run directly on \xen hypervisor APIs.
 Since \xen powers most public clouds, \mirage lets you deploy your servers more cheaply, securely and faster in any of them.
 
@@ -81,67 +74,12 @@ This elasticity result in the possibility to precisely meet the demand, avoiding
 \paragraph{Towards a distributed database}
 As a cloud oriented operating system, \mirage has to deal with distributed system related problems.
 One of them is to share data between several devices spread out over a network.
-This is the purpose of distributed databases.
+In the example of self-scaling web-servers, new created instances first fork an image of the distributed database.
+Then they can modify it independently according to received requests.
+Finally, then the traffic is decreasing, they have to merge their version of the database with others web-servers before shutting down.
+
+Managing such behaviours is the purpose of distributed databases.
 \irmin is a portable distributed database written in \ocaml, and designed with  requirements of static type-safety for security and reliability.
-
-%\subsection{Technical background}
-
-%Unikernels are specialised OS kernels written in a high-level language which act as individual software components.
-%A full application consists of a set of running unikernels working together as a distributed system.
-%These unikerels are based on a radical operating system architecture called library operating system (or libOS).
-%
-%This architecture is composed of a set of libraries that implement mechanisms, such as those needed to drive hardware or talk network protocols, and a set of policies that enforce access control and isolation in the application layer.
-%The libOS architecture has several advantages over more conventional designs.
-%For example, when performances are required, a libOS wins by allowing applications to access hardware resources directly without having to make repeated privilege transitions to move data between userspace and kernelspace.
-%The libOS architecture has also two big drawbacks.
-%First, running multiple applications side by side with strong resource isolation is tricky.
-%Second, device drivers must be rewritten to fit the new model.
-%
-%Happily, OS virtualization overcomes these drawbacks on commodity hardware.
-%A libOS running as a VM needs to implement only drivers for these virtual hardware devices and can depend on the hypervisor to achieve the isolation between applications.
-%But although OS virtualization avoid the need of rewrite every device drivers, protocol libraries are still needed to replace the services of a traditional operating system.
-%
-%When most of modern kernels are written in C, \mirage aims to unify these diverse interfaces into a single high-level language, \ocaml. Some of the benefits of such a modern programming languages include:
-%
-%\begin{itemize}
-%	\item \emph{Static type checking}: Compilers catches errors at compile time rather than runtime and reduce vulnerabilities through the lack of memory errors
-%	\item \emph{Automatic memory management}: Runtime systems relieve programmers of the burden of allocating and freeing memory, avoiding memory leaks
-%	\item \emph{Modules}: Internal implementation details can be abstracted and the scope of a single source-code change can be restricted
-%	\item \emph{Metaprogramming}: If the runtime configuration of a system is partially understood at compile time, then a compiler can optimize the program much more than it would normally be able to
-%\end{itemize}
-%
-%Moreover, the \ocaml compiler heavily emphasises static type checking, and the resulting binaries are fast native code with no runtime type information and the module system is among the most powerful in a general-purpose programming language in terms of permitting flexible and safe code reuse and refactoring.
-%
-%Unikernels are specialised OS kernels written in a high-level language which act as individual software components.
-%A full application consists of a set of running unikernels working together as a distributed system.
-%These unikerels are based on a radical operating system architecture called library operating system (or libOS)\cite{LibraryOperatingSystemsCloud2013}.
-%
-%This architecture is composed of a set of libraries that implement mechanisms, such as those needed to drive hardware or talk network protocols.
-%When a system component is needed, the developer just has to integrate the corresponding library in its program in order to manipulate the device through the provided interface.
-%As a result, only needed components are integrated in the final application.
-%
-%The libOS architecture has several advantages over more conventional designs.
-%For example, when performances are required, a libOS wins by allowing applications to access hardware resources directly without having to make repeated privilege transitions to move data between userspace and kernelspace.
-%The libOS architecture has also two big drawbacks.
-%First, running multiple applications side by side with strong resource isolation is tricky.
-%Second, device drivers must be rewritten to fit the new model.
-%Happily, OS virtualization overcomes these drawbacks on commodity hardware.
-%Indeed, a libOS running as a VM needs to implement only drivers for these virtual hardware devices and can depend on the hypervisor to achieve the isolation between applications.
-%But although OS virtualization avoid the need of rewrite every device drivers, protocol libraries are still needed to replace the services of a traditional operating system.
-%
-%When most of modern kernels are written in C, \mirage aims to unify these diverse interfaces into a single high-level language, \ocaml.
-%Some of the benefits of using \ocaml include:
-%
-%\begin{itemize}
-%	\item It is a full-fledged systems programming language with a flexible model that supports functional, imperative and object-oriented programming
-%	\item Some modern features like static type checking, automatic memory management, modules and metaprogramming make unikernels robust\cite{CreatingFunctionalInternet2007} against attacks like memory overflow
-%	\item \ocaml has a simple yet high-performance runtime making it an ideal platform for experimenting with the unikernel abstraction that interfaces the runtime with \xen
-%	\item Some critical system component of \xen  are implemented in \ocaml, making integration straightforward
-%\end{itemize}
-%
-%\mirage executes \ocaml code over a specialised language runtime modified in two key areas: memory management and concurrency.
-%To provide concurrency, \mirage integrates the \lwt cooperative threading library, which provide straight-line control flow for the developer.
-%Most scheduling and thread logic is contained in an application library, and can thus be modified by the developer as they see fit\cite{LibraryOperatingSystemsCloud2013}.
 
 
 
@@ -188,7 +126,7 @@ and when a value has been changed in two distant locations, the background propa
 	\item Type of data with custom merge operator
 	\item Callback functions applied every time a conflict happen
 \end{itemize}
-The study and the design of such mechanism is one of the main goals of my internship.
+The study and the design of such mechanisms is one of the main goals of my internship.
 
 
 \subsection{Architecture}
@@ -217,7 +155,7 @@ This mean that:
 	\item if a value is modified, a new key/value pair is created: the resulting data-store is \emph{immutable}
 	\item if two data-stores share the same values, they will have the same keys: the store is \emph{consistent}, the overall structure only depend on the stored data
 \end{itemize}
-The block store contains serialized values from application contents, but also structured information, like prefix-tree nodes and history meta-data.
+The block store contains serialized values from application contents, but also structured data, like prefix-tree nodes and history meta-data.
 As the store is append-only, there is no remove function.
 The store is expected to grow forever.
 But garbage-collection and compression techniques can be used to manage its growth.
@@ -241,24 +179,13 @@ As said earlier, \irmin gives the possibility to the programmer to deals with co
 One of them is the use of data-structures with custom merge operators.
 The idea is to give an abstract interpretation of the \irmin low-level store which provides operations of classical data structure.
 At this stage of my internship, I have consider queues and ropes data structures.
+The \opam repository for mergeable queues is available at \href{https://github.com/mirage/merge-queues}{this address}.
+
 These data structures and their associated operations have already been widely studied, even in a pure functional context\cite{PurelyFunctionalDataStructures1996}.
 \textbf{That is why the purpose of my work is not to compete with existing implementation of such data structures, but extend them with a new operation, the merge operation}.
 
 
 \subsection{Queues}
-
-There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
-However, \irmin is built on an append-only low-level store.
-Such representation of the memory matches well with the functional programming model where the memory is immutable.
-For this reason I design these mergeable queues as functional queues.
-The exposed signature is presented in annexe~\ref{appendixqueue}.
-
-A functional queue is composed of two simple linked list.
-The first one contains elements that have been pushed in the queue, and the second one those will be popped.
-Then the pop list is empty, the push list is flush into the pop one.
-This operation is called \emph{normalization}.
-Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
-That is why the amortized cost of operations on the queue is $O(1)$.
 
 \begin{figure}[hbt]
 \begin{lstlisting}
@@ -275,6 +202,19 @@ type elt = Index of index | Node of node | Elt of V.t
 \caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
 \label{queuesig}
 \end{figure}
+
+There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
+However, \irmin is built on an append-only low-level store.
+Such representation of the memory matches well with the functional programming model where the memory is immutable.
+For this reason I design these mergeable queues as functional queues.
+The exposed signature is presented in annexe~\ref{appendixqueue}.
+
+A functional queue is composed of two simple linked list.
+The first one contains elements that have been pushed in the queue, and the second one those will be popped.
+Then the pop list is empty, the push list is flush into the pop one.
+This operation is called \emph{normalization}.
+Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
+That is why the amortized cost of operations on the queue is $O(1)$.
 
 \paragraph{Internal structure}
 The implementation of mergeable queues is based on an \irmin store containing three types of element: \code{Index}, \code{Node} and \code{Elt}. Their type declarations are given in figure~\ref{queuesig}.
@@ -313,6 +253,23 @@ The resulting queue -- called \code{new} -- has to reflect the transformations f
 
 
 \subsection{Ropes}
+
+\paragraph{General description}
+A rope is a data structure that is used for efficiently storing and manipulating a very long string.
+A rope is a binary tree having leaf nodes that contain a short string.
+Each node has an index equal to the sum of the length of each strings in its left subtree.
+Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
+The binary tree can be seen as several levels of nodes.
+The bottom level contains all the nodes that contain a string when higher levels have fewer and fewer nodes.
+The top level consists of a single \emph{root} node.
+
+The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexitytable} compares the complexity of these operations for a rope and a string.
+
+If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
+In fact, I design the ropes with the following idea:
+"give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
+That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
+Indeed, because such a rope can be built on any type of container, it is impossible to have a general way to merge it.
 
 \begin{figure}[hbt]
 \centering
@@ -353,29 +310,12 @@ The resulting queue -- called \code{new} -- has to reflect the transformations f
 \label{complexitytable}
 \end{figure}
 
-\paragraph{General description}
-A rope is a data structure that is used for efficiently storing and manipulating a very long string.
-A rope is a binary tree having leaf nodes that contain a short string.
-Each node has an index equal to the sum of the length of each strings in its left subtree.
-Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
-The binary tree can be seen as several levels of nodes.
-The bottom level contains all the nodes that contain a string when higher levels have fewer and fewer nodes.
-The top level consists of a single \emph{root} node.
-
-The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexitytable} compares the complexity of these operations for a rope and a string.
-
-If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
-In fact, I design the ropes with the following idea:
-"give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
-That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
-Indeed, because such a rope can be built on any type of container, it is impossible to have a general way to merge it.
-
-\begin{figure}[hbt]
-\centering
-\includegraphics[scale=0.6]{rotations.pdf}
-\caption{Generic tree rotation. A tree rotation moves one node up in the tree and one node down.}
-\label{rotationgraph}
-\end{figure}
+%\begin{figure}[hbt]
+%\centering
+%\includegraphics[scale=0.6]{rotations.pdf}
+%\caption{Generic tree rotation. A tree rotation moves one node up in the tree and one node down.}
+%\label{rotationgraph}
+%\end{figure}
 
 \paragraph{Implementation overview}
 The implementation of mergeable ropes is quite straightforward, in the sense that it follows the previous description.
@@ -389,7 +329,8 @@ The implementations of the six main operations follow more or less the same patt
 A binary search is made on the tree in order to determine the leaves concerned by the operation.
 Then the operation is applied on the containers found in the leaves.
 In order to achieve the $\log n$ complexity, the size of these containers has to be in the same order as the depth of the tree.
-Finally, the tree is recursively rebuilt, using the rotation transformation described in the figure~\ref{rotationgraph} in order to maintain the balancing propriety.
+Finally, the tree is recursively rebuilt, using a rotation transformation in order to maintain the balancing propriety.
+%Finally, the tree is recursively rebuilt, using the rotation transformation described in the figure~\ref{rotationgraph} in order to maintain the balancing propriety.
 
 The merge operation is a bit different.
 Given two tree to be merged and their common ancestor, their keys in the \irmin store are used to determine the smallest subtrees where modifications occurred.

@@ -188,35 +188,6 @@ These data structures and their associated operations have already been widely s
 \subsection{Queues}
 
 \begin{figure}[hbt]
-\begin{lstlisting}
-type index = {              type node = {
-  push: int;                  next: K.t option;
-  pop: int;                   previous: K.t option;
-  top: K.t;                   elt: K.t option;
-  bottom: K.t;                branch: index option;
-} with compare, sexp        } with compare, sexp
-
-type elt = Index of index | Node of node | Elt of V.t
-           with compare, sexp
-\end{lstlisting}
-\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
-\label{queuesig}
-\end{figure}
-
-There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
-However, \irmin is built on an append-only low-level store.
-Such representation of the memory matches well with the functional programming model where the memory is immutable.
-For this reason I design these mergeable queues as functional queues.
-The exposed signature is presented in annexe~\ref{appendixqueue}.
-
-A functional queue is composed of two simple linked list.
-The first one contains elements that have been pushed in the queue, and the second one those will be popped.
-Then the pop list is empty, the push list is flush into the pop one.
-This operation is called \emph{normalization}.
-Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
-That is why the amortized cost of operations on the queue is $O(1)$.
-
-\begin{figure}[hbt]
 \centering
 \setlength{\tabcolsep}{1cm}
 \begin{tabular}{|c|c|c|}
@@ -241,6 +212,35 @@ That is why the amortized cost of operations on the queue is $O(1)$.
 \end{tabular}
 \caption{Cost of queue operations. $n$ denotes the length of the queue.}
 \label{queuetable}
+\end{figure}
+
+There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
+However, \irmin is built on an append-only low-level store.
+Such representation of the memory matches well with the functional programming model where the memory is immutable.
+For this reason I design these mergeable queues as functional queues.
+The exposed signature is presented in annexe~\ref{appendixqueue}.
+
+A functional queue is composed of two simple linked list.
+The first one contains elements that have been pushed in the queue, and the second one those will be popped.
+Then the pop list is empty, the push list is flush into the pop one.
+This operation is called \emph{normalization}.
+Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
+That is why the amortized cost of operations on the queue is $O(1)$.
+
+\begin{figure}[hbt]
+\begin{lstlisting}
+type index = {              type node = {
+  push: int;                  next: K.t option;
+  pop: int;                   previous: K.t option;
+  top: K.t;                   elt: K.t option;
+  bottom: K.t;                branch: index option;
+} with compare, sexp        } with compare, sexp
+
+type elt = Index of index | Node of node | Elt of V.t
+           with compare, sexp
+\end{lstlisting}
+\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
+\label{queuesig}
 \end{figure}
 
 \paragraph{Internal structure}

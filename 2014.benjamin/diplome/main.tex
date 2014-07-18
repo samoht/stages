@@ -187,38 +187,42 @@ These data structures and their associated operations have already been widely s
 
 \subsection{Queues}
 
-\begin{figure}[hbt]
-\centering
-\setlength{\tabcolsep}{1cm}
-\begin{tabular}{|c|c|c|}
-\hline
-	Operation &
-	Read &
-	Write \\
-\hline
-	Push &
-	\cellcolor{chameleon!20} $0$ &
-	\cellcolor{chameleon!20} $2$ \\
-\hline
-	Pop &
-	\cellcolor{butter!20} $2$ on average &
-	\cellcolor{butter!20} $1$ on average \\
-\hline
-\hline
-	Merge &
-	\cellcolor{scarletred!20} $n$ worst case &
-	\cellcolor{chameleon!20} $1$ \\
-\hline
-\end{tabular}
-\caption{Cost of queue operations. $n$ denotes the length of the queue.}
-\label{queuetable}
-\end{figure}
-
 There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
 However, \irmin is built on an append-only low-level store.
 Such representation of the memory matches well with the functional programming model where the memory is immutable.
 For this reason I design these mergeable queues as functional queues.
 The exposed signature is presented in annexe~\ref{appendixqueue}.
+
+\begin{figure}[hbt]
+\centering
+\setlength{\tabcolsep}{0.5cm}
+\begin{tabular}{|c|c|c|c|}
+\hline
+	Operation &
+	Read &
+	Write &
+	\\
+\hline
+	Push &
+	\cellcolor{chameleon!20} $0$ &
+	\cellcolor{chameleon!20} $2$ &
+	\cellcolor{chameleon!20} $O(1)$ \\
+\hline
+	Pop &
+	\cellcolor{butter!20} $2$ on average &
+	\cellcolor{butter!20} $1$ on average &
+	\cellcolor{chameleon!20} $O(1)$ \\
+\hline
+\hline
+	Merge &
+	\cellcolor{scarletred!20} $n$ worst case &
+	\cellcolor{chameleon!20} $1$ &
+	\cellcolor{butter!20} $O(n)$ \\
+\hline
+\end{tabular}
+\caption{Cost of queue operations where $n$ denotes the length of the queue. Read and write are expressed in number of memory access.}
+\label{queuetable}
+\end{figure}
 
 A functional queue is composed of two simple linked list.
 The first one contains elements that have been pushed in the queue, and the second one those will be popped.

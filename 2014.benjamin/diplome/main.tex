@@ -74,9 +74,9 @@ This elasticity result in the possibility to precisely meet the demand, avoiding
 \paragraph{Towards a distributed database}
 As a cloud oriented operating system, \mirage has to deal with distributed system related problems.
 One of them is to share data between several devices spread out over a network.
-In the example of self-scaling web-servers, new created instances first fork an image of the distributed database.
+In the example of self-scaling web-servers, new created instances should first fork an image of the web-server global current state.
 Then they can modify it independently according to received requests.
-Finally, then the traffic is decreasing, they have to merge their version of the database with others web-servers before shutting down.
+Finally, then the traffic is decreasing, they have to merge their version of the state with others web-servers before shutting down in order to maintain the consistency of the global state.
 
 Managing such behaviours is the purpose of distributed databases.
 \irmin is a portable distributed database written in \ocaml, and designed with  requirements of static type-safety for security and reliability.
@@ -177,7 +177,8 @@ The complete signature of such contents is detailed in appendix~\ref{appendixcon
 
 As said earlier, \irmin gives the possibility to the programmer to deals with conflicts with several tools.
 One of them is the use of data-structures with custom merge operators.
-The idea is to give an abstract interpretation of the \irmin low-level store which provides operations of classical data structure.
+The idea is to give an abstraction of the \irmin low-level store as a high-level data-structure.
+In addition of their classical operations, these data-structure include the merge operation mentioned earlier. 
 At this stage of my internship, I have consider queues and ropes data structures.
 The \opam repository for mergeable queues is available at \href{https://github.com/mirage/merge-queues}{this address}.
 
@@ -259,9 +260,8 @@ A rope is a data structure that is used for efficiently storing and manipulating
 A rope is a binary tree having leaf nodes that contain a short string.
 Each node has an index equal to the sum of the length of each strings in its left subtree.
 Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
-The binary tree can be seen as several levels of nodes.
-The bottom level contains all the nodes that contain a string when higher levels have fewer and fewer nodes.
-The top level consists of a single \emph{root} node.
+The binary tree is crossed from the root to leaf each time the string has to be accessed.
+It can be done in $\log (n)$ time if the tree is balanced.
 
 The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexitytable} compares the complexity of these operations for a rope and a string.
 

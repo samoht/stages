@@ -72,14 +72,12 @@ When the demand dies down again, these web-servers can automatically shut themse
 This elasticity result in the possibility to precisely meet the demand, avoiding waste of resources.
 
 \paragraph{Towards a distributed database}
-As a cloud oriented operating system, \mirage has to deal with distributed system related problems.
+As a cloud oriented operating system, \mirage has to deal with all the problems arising in to distributed systems.
 One of them is to share data between several devices spread out over a network.
 In the example of self-scaling web-servers, new created instances should first fork an image of the web-server global current state.
-Then they can modify it independently according to received requests.
-Finally, then the traffic is decreasing, they have to merge their version of the state with others web-servers before shutting down in order to maintain the consistency of the global state.
-
-Managing such behaviours is the purpose of distributed databases.
-\irmin is a portable distributed database written in \ocaml, and designed with  requirements of static type-safety for security and reliability.
+Then they can modify it independently according to the requests they receive.
+Finally, then the traffic is decreasing and return to a normal rate, the forked web-servers have to somehow merge back all their local modifications.
+Understanding how to merge them efficiently is the purpose of my internship.
 
 
 
@@ -87,6 +85,7 @@ Managing such behaviours is the purpose of distributed databases.
 
 \subsection{Design}
 
+\irmin is a portable distributed database written in \ocaml, and designed with requirements of static type-safety for security and reliability.
 Designing distributed database is an hard problem, mainly because of CAP’s theorem\cite{BrewerConjecture2002} which states that:
 
 \bigskip
@@ -180,10 +179,10 @@ One of them is the use of data-structures with custom merge operators.
 The idea is to give an abstraction of the \irmin low-level store as a high-level data-structure.
 In addition of their classical operations, these data-structure include the merge operation mentioned earlier. 
 At this stage of my internship, I have consider queues and ropes data structures.
-The \opam repository for mergeable queues is available at \href{https://github.com/mirage/merge-queues}{this address}.
+The \opam repository for mergeable queues is available on \href{https://github.com/mirage/merge-queues}{\texttt{github.com/mirage}}.
 
 These data structures and their associated operations have already been widely studied, even in a pure functional context\cite{PurelyFunctionalDataStructures1996}.
-\textbf{That is why the purpose of my work is not to compete with existing implementation of such data structures, but extend them with a new operation, the merge operation}.
+\textbf{That is why the purpose of my work is not to compete with existing implementation of such data structures, but to extend them with an efficient and consistent merge operation.}
 
 
 \subsection{Queues}

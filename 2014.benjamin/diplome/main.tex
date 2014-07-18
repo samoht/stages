@@ -72,7 +72,7 @@ When the demand dies down again, these web-servers can automatically shut themse
 This elasticity result in the possibility to precisely meet the demand, avoiding waste of resources.
 
 \paragraph{Towards a distributed database}
-As a cloud oriented operating system, \mirage has to deal with all the problems arising in to distributed systems.
+As a cloud oriented operating system, \mirage has to deal with all the problems arising in distributed systems.
 One of them is to share data between several devices spread out over a network.
 In the example of self-scaling web-servers, new created instances should first fork an image of the web-server global current state.
 Then they can modify it independently according to the requests they receive.
@@ -216,6 +216,33 @@ This operation is called \emph{normalization}.
 Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
 That is why the amortized cost of operations on the queue is $O(1)$.
 
+\begin{figure}[hbt]
+\centering
+\setlength{\tabcolsep}{1cm}
+\begin{tabular}{|c|c|c|}
+\hline
+	Operation &
+	Read &
+	Write \\
+\hline
+	Push &
+	\cellcolor{chameleon!20} $2$ &
+	\cellcolor{chameleon!20} $0$ \\
+\hline
+	Pop &
+	\cellcolor{butter!20} $1$ on average &
+	\cellcolor{butter!20} $2$ on average \\
+\hline
+\hline
+	Merge &
+	\cellcolor{scarletred!20} $n$ worst case &
+	\cellcolor{chameleon!20} $1$ \\
+\hline
+\end{tabular}
+\caption{Cost of queue operations. $n$ denotes the length of the queue.}
+\label{queuetable}
+\end{figure}
+
 \paragraph{Internal structure}
 The implementation of mergeable queues is based on an \irmin store containing three types of element: \code{Index}, \code{Node} and \code{Elt}. Their type declarations are given in figure~\ref{queuesig}.
 
@@ -230,12 +257,6 @@ They are composed of four optional elements, \code{next}, \code{previous}, \code
 
 Finally, \code{Elt} is containing elements added in the queue.
 
-\begin{figure}[hbt]
-\centering
-\includegraphics[scale=0.6]{queue.pdf}
-\caption{Example of a possible queue internal structure. Here, the main queue is accessible through the index \code{I0}. The index \code{I1} is pointing to a queue concatenated during a previous merge operation. This queue will be unfolded during the next normalization. Because of the \irmin store behavior,  two nodes containing the same element share its physical representation.}
-\label{queuegraph}
-\end{figure}
 
 \paragraph{Major operations}
 The two first main operations on a queue are push and pop.
@@ -250,6 +271,12 @@ The other main operation is the merging one.
 The merging operation take three arguments: two queues to be merged \code{q1} and \code{q2}, and a common ancestor to those two queue called \code{old}.
 The resulting queue -- called \code{new} -- has to reflect the transformations from \code{old} to both \code{q1} and \code{q2}. First, element of a \code{old} which have been removed from \code{q2} are removed from \code{q1}. This is done without accessing these element by using the \code{push} and \code{pop} values. In the same way, all elements of \code{old} which are still in \code{q2} are removed. Then, \code{q2} is concatenate at the end of \code{q1} by adding a new node where the field \code{branch} contain the index of \code{q2}. In the worst case the merge operation uses a number of read linear in the size of \code{old}, but always only one write.
 
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{queue.pdf}
+\caption{Example of a possible queue internal structure. Here, the main queue is accessible through the index \code{I0}. The index \code{I1} is pointing to a queue concatenated during a previous merge operation. This queue will be unfolded during the next normalization. Because of the \irmin store behavior,  two nodes containing the same element share its physical representation.}
+\label{queuegraph}
+\end{figure}
 
 
 \subsection{Ropes}
@@ -262,7 +289,7 @@ Thus a node with two children divides the whole string into two parts: the left 
 The binary tree is crossed from the root to leaf each time the string has to be accessed.
 It can be done in $\log (n)$ time if the tree is balanced.
 
-The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{complexitytable} compares the complexity of these operations for a rope and a string.
+The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{ropetable} compares the complexity of these operations for a rope and a string.
 
 If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
 In fact, I design the ropes with the following idea:
@@ -306,7 +333,7 @@ Indeed, because such a rope can be built on any type of container, it is impossi
 \hline
 \end{tabular}
 \caption{Comparison of the complexity of several operations on ropes and strings. $n$ denotes the length of the rope/string, and $f$ is the complexity of the merge function provided by the user.}
-\label{complexitytable}
+\label{ropetable}
 \end{figure}
 
 %\begin{figure}[hbt]
@@ -345,7 +372,7 @@ Due to this restriction, the impact on the merge function efficiency is proporti
 At this stage of my internship, I have already implemented mergeable queues and ropes data structures.
 In the next weeks, I first plan to improve the implementation of the mergeable ropes, which is not yet optimal.
 Then I will work on a mergeable version of the priority heap data structure.
-Finally, I plan to implement an hack of the \ocaml memory which will allow to use it as a database.
+%Finally, I plan to implement an hack of the \ocaml memory which will allow to use it as a database.
 After that, if there is still remaining time, I will work on some concrete use case of my data structures.
 
 \nocite{*}

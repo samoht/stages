@@ -47,8 +47,7 @@
 \begin{figure}[hbt]
 \centering
 \includegraphics[scale=0.8]{mirage-stack.pdf}
-\caption{Contrasting software layers in existing VM appliances vs.
-unikernel’s standalone kernel compilation approach.}
+\caption{Contrasting software layers in existing VM appliances vs. unikernel’s standalone kernel compilation approach.}
 \label{miragestackgraph}
 \end{figure}
 
@@ -56,7 +55,7 @@ Because they rely on an underlying operating system, most applications that run 
 Compartmentalisation of large servers into smaller virtual machines has enabled many new businesses to get started and achieve scale.
 But many of those virtual machines are single-purpose and yet they contain largely complete operating systems, including their vulnerabilities and bloat.
 \mirage represents a new approach where only the necessary components of the OS are included and compiled along with the application into a unikernel.
-This results in highly efficient appliances that can be deployed directly to the cloud and embedded devices, with the benefits of reduced costs and increased security and scalability. The figure~\ref{miragestackgraph} explicit the gain of unikernel compared to standard kernels.
+This results in highly efficient appliances that can be deployed directly to the cloud and embedded devices, with the benefits of reduced costs and increased security and scalability. The figure~\ref{miragestackgraph} describes the difference between unikernels and current approaches.
 
 \mirage is a \emph{library operating system}\cite{LibraryOperatingSystemsCloud2013} designed for constructing secure, high-performance network applications across a variety of cloud computing and mobile platforms.
 It is based around the \xen hypervisor and the \ocaml langage.
@@ -65,18 +64,18 @@ Thanks to \ocaml, code can be developed in a high-level functional programming l
 It is then compiled into a fully-standalone, specialised unikernel which can run directly on \xen hypervisor APIs.
 Since \xen powers most public clouds, \mirage lets you deploy your servers more cheaply, securely and faster in any of them.
 
-Due to the small size, it is possible for example to create auto-scaling web-servers with very small footprints.
-If a sudden spike in traffic occurs, the web-servers can be configured to create and deploy copies of themselves to service the demand.
-This auto-scaling happens so quickly that an incoming connection can trigger the creation of new server and the new server can then handle that request before it times out (which is on the order of milliseconds).
+Due to the much smaller size, it is possible for example to create auto-scaling web-servers with very small footprints.
+If a sudden spike in traffic occurs, the web-servers can be configured to create and deploy copies of themselves to serve the demand.
+This auto-scaling can happen so quickly that an incoming connection can trigger the creation of new server and the new server can then handle that request before it times out (which is on the order of milliseconds).
 When the demand dies down again, these web-servers can automatically shut themselves down.
-This elasticity result in the possibility to precisely meet the demand, avoiding waste of resources.
+This elasticity results in the ability to precisely match the demand and avoid wasting resources.
 
 \paragraph{Towards a distributed database}
 As a cloud oriented operating system, \mirage has to deal with all the problems arising in distributed systems.
 One of them is to share data between several devices spread out over a network.
-In the example of self-scaling web-servers, new created instances should first fork an image of the web-server global current state.
+In the example of self-scaling web-servers, newly created instances should first fork an image of the web-server's global current state.
 Then they can modify it independently according to the requests they receive.
-Finally, then the traffic is decreasing and return to a normal rate, the forked web-servers have to somehow merge back all their local modifications.
+Finally, when the traffic is decreasing and returning to a normal rate, the forked web-servers have to somehow merge back all their local modifications.
 Understanding how to merge them efficiently is the purpose of my internship.
 
 
@@ -85,8 +84,8 @@ Understanding how to merge them efficiently is the purpose of my internship.
 
 \subsection{Design}
 
-\irmin is a portable distributed database written in \ocaml, and designed with requirements of static type-safety for security and reliability.
-Designing distributed database is an hard problem, mainly because of CAP’s theorem\cite{BrewerConjecture2002} which states that:
+\irmin is a portable distributed database written in \ocaml, and designed with the requirements of static type-safety for security and reliability.
+Designing a distributed database is a difficult problem, mainly because of the CAP theorem\cite{BrewerConjecture2002} which states that:
 
 \bigskip
 \begin{tabular}{|c}
@@ -102,24 +101,24 @@ It is impossible for a distributed system to simultaneously provide all three of
 \bigskip
 
 The modern answer to solve this paradox is to maintain availability but relax the consistency model.
-Most of the large-scale distributed system assume there is no unique global state of the system, which result in a class of system said to be \emph{eventually consistent}\cite{EventuallyConsistentTransactions2012}.
-The approach of \irmin to relax the consistency model is inspired by distributed version control system such as \git and \mercurial.
+Most of the large-scale distributed systems assume there is no unique global state of the system, which results in a class of system said to be \emph{eventually consistent}\cite{EventuallyConsistentTransactions2012}.
+The approach of \irmin to relax the consistency model is inspired by distributed version control systems such as \git and \mercurial.
 Every actor owns a branch representing a partial replica of the global database.
 Modifications are local and happen only on the current branch.
 Branches can explicitly be merged in order to recover the consistency property, using application-defined merge policies between replicas.
-Such class of systems have been called \emph{branch-consistent} models.
+Such classes of systems have been called \emph{branch-consistent} models.
 
 Data replication is a key technology in distributed systems that enables higher availability and performance.
 It is possible to distinguish two kinds of replication:
-\emph{pessimistic}\cite{ImplementingFaulttolerantServices1990}\cite{ParttimeParliament1998}\cite{UnderstandableConsensusAlgorithm2014} methods where master election and synchronous locking are used to block the system in while changes are propagated;
+\emph{pessimistic}\cite{ImplementingFaulttolerantServices1990}\cite{ParttimeParliament1998}\cite{UnderstandableConsensusAlgorithm2014} methods where master election and synchronous locking are used to block the system while changes are propagated;
 and \emph{optimistic}\cite{OptimisticReplication2005} methods where the changes are propagated in the background and where special techniques handle supposed rare conflicts.
-\irmin choose to use an optimistic replication system because it improves availability, does not need knowledge on the underlying network, and can easily scale because it does not need synchronisation.
+\irmin chooses to use an optimistic replication system because it improves availability, does not need knowledge about the underlying network, and can easily scale because it does not need synchronisation.
 The drawback is that the users have to handle conflicts.
 
 Conflicts can appear in two different situations:
 when two nearby users are modifying the same value at the same time;
-and when a value has been changed in two distant locations, the background propagation resulting in a conflict.
-\irmin give the possibility to the application builder to deals with these situation with several tools:
+and when a value has been changed in two distant locations, with the background propagation resulting in a conflict.
+\irmin allows the application developer to deal with these situations using several tools:
 \begin{itemize}
 	\item Conflict-free replicated data types\cite{ConflictfreeReplicatedDataTypes2011}
 	\item Type of data with custom merge operator
@@ -146,7 +145,7 @@ end
 \label{prefixtreesig}
 \end{figure}
 
-\irmin provide a high-level interface built upon two user-provided stores.
+\irmin provides a high-level interface built upon two user-provided stores.
 
 The \emph{block store} is a low-level key/value append-only store, where values are a sequence of bytes and keys are deterministically computed from the values (for instance using SHA algorithms).
 This mean that:
@@ -156,8 +155,7 @@ This mean that:
 \end{itemize}
 The block store contains serialized values from application contents, but also structured data, like prefix-tree nodes and history meta-data.
 As the store is append-only, there is no remove function.
-The store is expected to grow forever.
-But garbage-collection and compression techniques can be used to manage its growth.
+The store is expected to grow forever, but garbage-collection and compression techniques can be used to manage its growth.
 This is not an issue as commodity storage steadily becomes more and more inexpensive.
 
 The tag store is the only mutable part of the system.
@@ -174,24 +172,24 @@ The complete signature of such contents is detailed in appendix~\ref{appendixcon
 
 \section{Weakly consistent data-structures}
 
-As said earlier, \irmin gives the possibility to the programmer to deals with conflicts with several tools.
+As mentioned earlier, \irmin allows the application developer to deal with conflicts using several tools.
 One of them is the use of data-structures with custom merge operators.
 The idea is to give an abstraction of the \irmin low-level store as a high-level data-structure.
 In addition of their classical operations, these data-structure include the merge operation mentioned earlier. 
-At this stage of my internship, I have consider queues and ropes data structures.
+At this stage of my internship, I have considered queue and rope data structures.
 The \opam repository for mergeable queues is available on \href{https://github.com/mirage/merge-queues}{\texttt{github.com/mirage}}.
 
 These data structures and their associated operations have already been widely studied, even in a pure functional context\cite{PurelyFunctionalDataStructures1996}.
-\textbf{That is why the purpose of my work is not to compete with existing implementation of such data structures, but to extend them with an efficient and consistent merge operation.}
+\textbf{That is why the purpose of my work is not to compete with existing implementations of such data structures, but to extend them with an efficient and consistent merge operation.}
 
 
 \subsection{Queues}
 
 There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
 However, \irmin is built on an append-only low-level store.
-Such representation of the memory matches well with the functional programming model where the memory is immutable.
+Such representations of the memory matches well with the functional programming model where the memory is immutable.
 For this reason I design these mergeable queues as functional queues.
-The exposed signature is presented in annexe~\ref{appendixqueue}.
+The exposed signature is presented in appendix~\ref{appendixqueue}.
 
 \begin{figure}[hbt]
 \centering
@@ -224,11 +222,11 @@ The exposed signature is presented in annexe~\ref{appendixqueue}.
 \label{queuetable}
 \end{figure}
 
-A functional queue is composed of two simple linked list.
-The first one contains elements that have been pushed in the queue, and the second one those will be popped.
-Then the pop list is empty, the push list is flush into the pop one.
+A functional queue is composed of two simple linked lists.
+The first one contains elements that have been pushed onto the queue, and the second one those that will be popped.
+When the pop list is empty, the push list is flushed into the pop one.
 This operation is called \emph{normalization}.
-Event though the normalization is a linear operation,  each element of the queue has to be normalized only one time.
+Event though the normalization is a linear operation,  each element of the queue has to be normalized only once.
 That is why the amortized cost of operations on the queue is $O(1)$.
 
 \begin{figure}[hbt]
@@ -252,28 +250,33 @@ The implementation of mergeable queues is based on an \irmin store containing th
 
 \code{Index} are queue accessors.
 They are defined by four fields, \code{push}, \code{pop}, \code{top} and \code{bottom}.
-The two first field \code{push} and \code{pop} are respectively the number of push and pop applied on the queue since its creation.
+The two first fields, \code{push} and \code{pop}, are the number of pushes and pops applied to the queue since its creation.
 They are useful for the merge operation.
 The two others, \code{top} and \code{bottom}, are keys of the top and bottom element of the queue.
 
 \code{Node} are elements manipulated by queue operations.
-They are composed of four optional elements, \code{next}, \code{previous}, \code{elt} and \code{branch}. \code{next} and \code{previous} are key to a potential preceding or following element.In practice, only one of these two can be not empty. \code{elt} is also an optional key which points to a value of the queue. The last field \code{branch} is an optional index, used only by the merge operation.
+They are composed of four optional elements, \code{next}, \code{previous}, \code{elt} and \code{branch}. \code{next} and \code{previous} are keys to a potential preceding or following element.In practice, only one of these two can be not empty. \code{elt} is also an optional key which points to a value of the queue. The last field \code{branch} is an optional index, used only by the merge operation.
 
-Finally, \code{Elt} is containing elements added in the queue.
+Finally, \code{Elt} contains elements added to the queue.
 
 
 \paragraph{Major operations}
 The two first main operations on a queue are push and pop.
 The push operation adds a new \code{Elt} containing the pushed value, and a \code{Node} pointing to this element and the previous bottom element of the queue.
-It return a new \code{Index} where the bottom element is the new created \code{Node}.
-The pop operation try to read the top element of the queue.
+It returns a new \code{Index} where the bottom element is the new created \code{Node}.
+The pop operation tries to read the top element of the queue.
 If the pop list is empty, the queue is normalized.
-Then it return the value associated to the reading \code{Node} and an \code{Index} where the top element is the following element of the reading \code{Node}.
-On average, there is two reads and three writes in the \irmin store for one push and one pop.
+Then it returns the value associated with the reading \code{Node} and an \code{Index}, where the top element is the following element of the reading \code{Node}.
+On average, there are two reads and three writes in the \irmin store for one push and one pop.
 
-The other main operation is the merging one.
-The merging operation take three arguments: two queues to be merged \code{q1} and \code{q2}, and a common ancestor to those two queue called \code{old}.
-The resulting queue -- called \code{new} -- has to reflect the transformations from \code{old} to both \code{q1} and \code{q2}. First, element of a \code{old} which have been removed from \code{q2} are removed from \code{q1}. This is done without accessing these element by using the \code{push} and \code{pop} values. In the same way, all elements of \code{old} which are still in \code{q2} are removed. Then, \code{q2} is concatenate at the end of \code{q1} by adding a new node where the field \code{branch} contain the index of \code{q2}. In the worst case the merge operation uses a number of read linear in the size of \code{old}, but always only one write.
+The other main operation is merging.
+The merging operation takes three arguments: two queues to be merged, \code{q1} and \code{q2}, and a common ancestor to those two queues called \code{old}.
+The resulting queue -- called \code{new} -- has to reflect the transformations from \code{old} to both \code{q1} and \code{q2}.
+First, elements of \code{old} which have been removed from \code{q2} are removed from \code{q1}.
+This is done without accessing these elements by using the \code{push} and \code{pop} values.
+In the same way, all elements of \code{old} which are still in \code{q2} are removed.
+Then, \code{q2} is concatenated at the end of \code{q1} by adding a new node where the field \code{branch} contains the index of \code{q2}.
+In the worst case, the merge operation uses a number of reads linear in the size of \code{old}, but always only one write.
 
 \begin{figure}[hbt]
 \centering
@@ -288,14 +291,22 @@ The resulting queue -- called \code{new} -- has to reflect the transformations f
 \paragraph{General description}
 A rope is a data structure that is used for efficiently storing and manipulating a very long string.
 A rope is a binary tree having leaf nodes that contain a short string.
-Each node has an index equal to the sum of the length of each strings in its left subtree.
+Each node has an index equal to the sum of the length of each string in its left subtree.
 Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string and the right subtree stores the second part.
 The binary tree is crossed from the root to leaf each time the string has to be accessed.
 It can be done in $\log (n)$ time if the tree is balanced.
 
-The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}. Set and get respectively set or get the character at a given position. Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope. Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$. Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$. Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$. The figure~\ref{ropetable} compares the complexity of these operations for a rope and a string.
+The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}:
+\begin{itemize}
+	\item Set and get respectively set or get the character at a given position.
+	\item Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope.
+	\item Concat$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$.
+	\item Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$.
+	\item Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$.
+\end{itemize}
+Figure~\ref{ropetable} compares the complexity of these operations for a rope and a string.
 
-If ropes are mainly used to manipulate strings, they can also be used to manipulate any other types of container, as long as they support the above six operations.
+If ropes are mainly used to manipulate strings, they can also be used to manipulate any other type of container, as long as they support the above six operations.
 In fact, I design the ropes with the following idea:
 "give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
 That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
@@ -349,35 +360,34 @@ Indeed, because such a rope can be built on any type of container, it is impossi
 
 \paragraph{Implementation overview}
 The implementation of mergeable ropes is quite straightforward, in the sense that it follows the previous description.
-The tree containing the rope is a self-balancing binary search tree which keep a factor two between its minimal and maximal depth.
+The tree containing the rope is a self-balancing binary search tree which keeps a factor of two between its minimal and maximal depth.
 To implement such tree, the \irmin store is specialized in order to contain three types of elements.
 As in mergeable queue, \code{Index} are accessors to the data structure.
-\code{Node} are intermediate element of the tree which contain informations to improve the binary search.
+\code{Node} are intermediate elements of the tree which contain information to improve the binary search.
 Finally, \code{Leaf} are the user-defined container on which the rope is built.
 
 The implementations of the six main operations follow more or less the same pattern.
 A binary search is made on the tree in order to determine the leaves concerned by the operation.
 Then the operation is applied on the containers found in the leaves.
-In order to achieve the $\log n$ complexity, the size of these containers has to be in the same order as the depth of the tree.
-Finally, the tree is recursively rebuilt, using a rotation transformation in order to maintain the balancing propriety.
-%Finally, the tree is recursively rebuilt, using the rotation transformation described in the figure~\ref{rotationgraph} in order to maintain the balancing propriety.
+In order to achieve the $\log n$ complexity, the size of these containers has to be of the same order as the depth of the tree.
+Finally, the tree is recursively rebuilt, using a rotation transformation in order to maintain the balancing property.
 
 The merge operation is a bit different.
-Given two tree to be merged and their common ancestor, their keys in the \irmin store are used to determine the smallest subtrees where modifications occurred.
+Given two trees to be merged and their common ancestor, their keys in the \irmin store are used to determine the smallest subtrees where modifications occurred.
 Then these subtrees are linearised in containers on which the user-defined merge operation is applied.
 On simple trees, this approach is very efficient because the merge operation is applied on the smallest possible container.
-However, the balancing propriety reduces this effectiveness.
-Indeed, the internal structure of a tree can be deeply modified during a rebalancing operation, making impossible to compare potentially large subtrees.
-In order to minimize the scope of rebalancing operations, the rotation function is applied as less as possible, and only on the smallest unbalanced subtree.
+However, the balancing property reduces this effectiveness.
+Indeed, the internal structure of a tree can be deeply modified during a rebalancing operation, making it impossible to compare potentially large subtrees.
+In order to minimize the scope of rebalancing operations, the rotation function is applied as little as possible, and only on the smallest unbalanced subtree.
 Due to this restriction, the impact on the merge function efficiency is proportional to the volume of modifications produced by  an operation.
 
 \subsection{Future works}
 
-At this stage of my internship, I have already implemented mergeable queues and ropes data structures.
-In the next weeks, I first plan to improve the implementation of the mergeable ropes, which is not yet optimal.
+At this stage of my internship, I have already implemented mergeable queues and ropes.
+In the next few weeks, I first plan to improve the implementation of the mergeable ropes, which is not yet optimal.
 Then I will work on a mergeable version of the priority heap data structure.
 %Finally, I plan to implement an hack of the \ocaml memory which will allow to use it as a database.
-After that, if there is still remaining time, I will work on some concrete use case of my data structures.
+After that, if there is still remaining time, I will work on some concrete use cases of my data structures.
 
 \nocite{*}
 \bibliographystyle{plain}

@@ -11,9 +11,9 @@
 
 \input{caml.tex}
 
-\usepackage[toc, nonumberlist, nopostdot]{glossaries}
-\loadglsentries{glossary}
-\makeglossaries
+%\usepackage[toc, nonumberlist, nopostdot]{glossaries}
+%\loadglsentries{glossary}
+%\makeglossaries
 
 \usepackage[colorlinks=true, citecolor=black, linkcolor=black, urlcolor=blue]{hyperref}
 
@@ -170,12 +170,12 @@ The complete signature of such contents is detailed in appendix~\ref{appendixcon
 
 
 
-\section{Weakly consistent data-structures}
+\section{Weakly consistent data structures}
 
 As mentioned earlier, \irmin allows the application developer to deal with conflicts using several tools.
-One of them is the use of data-structures with custom merge operators.
-The idea is to give an abstraction of the \irmin low-level store as a high-level data-structure.
-In addition of their classical operations, these data-structure include the merge operation mentioned earlier. 
+One of them is the use of data structures with custom merge operators.
+The idea is to give an abstraction of the \irmin low-level store as a high-level data structure.
+In addition of their classical operations, these data structure include the merge operation mentioned earlier. 
 At this stage of my internship, I have considered queue and rope data structures.
 The \opam repository for mergeable queues is available on \href{https://github.com/mirage/merge-queues}{\texttt{github.com/mirage}}.
 
@@ -297,19 +297,17 @@ The binary tree is crossed from the root to leaf each time the string has to be 
 It can be done in $\log (n)$ time if the tree is balanced.
 
 The main operations on a rope are \emph{set}, \emph{get}, \emph{split}, \emph{concatenate}, \emph{insert} and \emph{delete}:
-\begin{itemize}
-	\item Set and get respectively set or get the character at a given position.
-	\item Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope.
-	\item Concat$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$.
-	\item Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$.
-	\item Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$.
-\end{itemize}
+Set and get respectively set or get the character at a given position.
+Split$(t, i)$ split at the position $i$ the rope $t$ into two new rope.
+Concatenate$(t_1, t_2)$ return a new rope which is the concatenation of $t_1$ and $t_2$.
+Insert$(t, i, s)$ insert the character chain $s$ in the rope $t$ at the position $i$.
+Finally, Delete$(t, i, j)$ delete in the rope $t$ the characters between $i$ and $j$.
 Figure~\ref{ropetable} compares the complexity of these operations for a rope and a string.
 
 If ropes are mainly used to manipulate strings, they can also be used to manipulate any other type of container, as long as they support the above six operations.
 In fact, I design the ropes with the following idea:
 "give me a container with a set of operations, and I will return you a rope on this container, supporting the same operations but achieving a better complexity, with the exception of set and get".
-That is why I request a merge operation on the container in order to implement the merge operation of the mergeable rope.
+I therefore request a merge operation on the container in order to implement the merge operation of the mergeable rope.
 Indeed, because such a rope can be built on any type of container, it is impossible to have a general way to merge it.
 
 \begin{figure}[hbt]
@@ -367,7 +365,7 @@ As in mergeable queue, \code{Index} are accessors to the data structure.
 Finally, \code{Leaf} are the user-defined container on which the rope is built.
 
 The implementations of the six main operations follow more or less the same pattern.
-A binary search is made on the tree in order to determine the leaves concerned by the operation.
+The algorithm performs a binary search on the tree in order to determine the leaves concerned by the operation.
 Then the operation is applied on the containers found in the leaves.
 In order to achieve the $\log n$ complexity, the size of these containers has to be of the same order as the depth of the tree.
 Finally, the tree is recursively rebuilt, using a rotation transformation in order to maintain the balancing property.
@@ -381,7 +379,37 @@ Indeed, the internal structure of a tree can be deeply modified during a rebalan
 In order to minimize the scope of rebalancing operations, the rotation function is applied as little as possible, and only on the smallest unbalanced subtree.
 Due to this restriction, the impact on the merge function efficiency is proportional to the volume of modifications produced by  an operation.
 
-\subsection{Future works}
+
+\section{Data structure analysis}
+
+After having implemented those two data structures, it was necessary to assert the correctness of these implementations and to analyse their effective costs.
+
+\subsection{Automatic checking}
+
+In the case of the correctness, we especially want to ensure that the classical operations match with their equivalents in other implementations, and that the merge operation follows its specification.
+The way it works is similar for queues and ropes.
+An oracle is used to determine a sequence of operations and their result.
+This sequence is then applied on the tested data structure, and on a witness obtained from another implementation.
+At each step, the data structure and the witness are required to exactly match.
+And at the end of the sequence, the two obtained result have to correspond with the result predicted by the oracle.
+
+If this protocol is working fine with classical operations, it cannot be honestly applied on the merge operation.
+Indeed, it does not exist at my knowledge another data structure to be used as a witness.
+The verification process is therefore a bit different for this operation.
+In this case, we chose a result with a easily verifiable property which is preserved after each merge operation.
+For example, a queue containing an increasing sequence of numbers, or a rope composed by a nondecreasing sequence of characters.
+This result is decomposed in several subresult having to be merge in order to recover the initial one.
+And because a merge preserves the aforementioned property, we can verify the correctness of the merge operation at each of its uses.
+
+These tests have successfully guaranteed the good behaviors of my implementation of queues and ropes data structures.
+But they are not sufficient to ensure that the theoretical complexity is reached.
+In addition, I therefore designed several benchmark tests in order to validate this last point.
+Aside from showing the theoretical complexity is reached, these tests highlight some other interesting properties.
+
+
+\subsection{Benchmarking}
+
+\section{Future works}
 
 At this stage of my internship, I have already implemented mergeable queues and ropes.
 In the next few weeks, I first plan to improve the implementation of the mergeable ropes, which is not yet optimal.
@@ -444,7 +472,8 @@ module Rec (S: STORE): S with type t = S.key
 (** Convert a contents store objects into storable keys, with the expected merge function (eg. read the contents, merge them and write back the result to get the final key). *)
 \end{lstlisting}
 
-\newpage
+\bigskip
+
 
 \subsection{Mergeable queue signature\label{appendixqueue}}
 \begin{lstlisting}
@@ -486,8 +515,116 @@ module Make
   : S with type elt = V.t
 \end{lstlisting}
 
-\newpage
-\glsaddall
-\printglossaries
+\bigskip
+
+
+\subsection{Mergeable rope signature\label{appendixrope}}
+\begin{lstlisting}
+module type S = sig
+
+  include IrminContents.S    (** The type of ropes *)
+  type value                 (** e.g char *)
+  type cont                  (** e.g string *)
+
+
+  val create : unit -> t Lwt.t
+  (** Create a new empty rope. *)
+  val make : cont -> t Lwt.t
+  (** Construct a new rope from the container [cont] *)
+  val flush : t -> cont Lwt.t
+  (** Return the container represented by the rope [t] *)
+
+
+  val is_empty : t -> bool Lwt.t
+  (** Return true if the rope [t] is empty, false otherwise. *)
+  val length : t -> int Lwt.t
+  (** Return the length of the rope [t]. *)
+
+
+  val set : t -> pos:int -> value -> t Lwt.t
+  (** Set the value at the position [pos] in the rope [t] to [value]. Complexity: log(n) *)
+  val get : t -> pos:int -> value Lwt.t
+  (** Get the value containing in the rope [t] at the position [pos]. Complexity: log(n) *)
+  val insert : t -> pos:int -> cont -> t Lwt.t
+  (** Insert the container [cont] in the rope [t] at the position [pos]. Complexity: log(n) *)
+  val delete : t -> pos:int -> len:int -> t Lwt.t
+  (** Delete [len] elements after the position [pos] in the rope [t]. Complexity: log(n) *)
+  val append : t -> t -> t Lwt.t
+  (** Append the two given ropes. Complexity: log(n) *)
+  val concat : sep:t -> t list -> t Lwt.t
+  (** Concatenate the ropes containing in [list] with the separator [sep]. Complexity: Sum (log n) *)
+  val split : t -> pos:int -> (t * t) Lwt.t
+  (** Split the rope [t] at the position [pos] into two ropes. Complexity: log(n) *)
+
+end
+\end{lstlisting}
+
+\bigskip
+
+\begin{lstlisting}
+module Make
+    (AO: Irmin.AO_MAKER)
+    (K: IrminKey.S)
+    (V:
+     sig
+       type a
+       type t
+       include IrminIdent.S with type t := t
+
+       val empty : t
+
+       val length : t -> int
+       val set : t -> int -> a -> t
+       val get : t -> int -> a
+       val insert : t -> int -> t -> t
+       val delete : t -> int -> int -> t
+       val append : t -> t -> t
+       val concat : t -> t list -> t
+       val split : t -> int -> (t * t)
+
+       val merge : t IrminMerge.t
+     end)
+  : S with type value = V.a
+       and type cont = V.t
+
+\end{lstlisting}
+
+\bigskip
+
+
+\subsection{Obj backend implementation}
+\begin{lstlisting}
+module ObjBackend
+    (K: IrminKey.S)
+    (V: IrminIdent.S) :
+  (IrminStore.AO with type key = K.t
+                  and type value = V.t) = struct
+
+  type t = unit
+  type key = K.t
+  type value = V.t
+
+  let create () = return ()
+  let clear () = return ()
+
+  let add t value =
+    return (Obj.magic (Obj.repr value))
+
+  let read t key =
+    return (Some (Obj.obj (Obj.magic key)))
+
+  let read_exn t key =
+    return (Obj.obj (Obj.magic key))
+
+  let mem t key = return true
+  let list t k = return k
+  let dump t = return []
+
+end
+\end{lstlisting}
+
+%\newpage
+%\glsaddall
+%\printglossaries
 
 \end{document}

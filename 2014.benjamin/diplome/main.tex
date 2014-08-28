@@ -137,9 +137,13 @@ module type S = sig
   type t
   type path
   type contents
+
   val read: t -> path -> contents
+  (** Read the content at [path] in [t]. *)
   val update: t -> path -> contents -> unit
+  (** Replace the contents at [path] in [t] by [contents] if [path] is already defined and create it otherwise. *)
   val remove: t -> path -> unit
+  (** Remove the given [path] in [t]. *)
   ...
 end
 \end{lstlisting}
@@ -229,23 +233,7 @@ The first one contains elements that have been pushed onto the queue, and the se
 When the pop list is empty, the push list is flushed into the pop one.
 This operation is called \emph{normalization}.
 Event though the normalization is a linear operation,  each element of the queue has to be normalized only once.
-That is why the amortized cost of operations on the queue is $O(1)$.
-
-\begin{figure}[hbt]
-\begin{lstlisting}
-type index = {              type node = {
-  push: int;                  next: K.t option;
-  pop: int;                   previous: K.t option;
-  top: K.t;                   elt: K.t option;
-  bottom: K.t;                branch: index option;
-} with compare, sexp        } with compare, sexp
-
-type elt = Index of index | Node of node | Elt of V.t
-           with compare, sexp
-\end{lstlisting}
-\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
-\label{queuesig}
-\end{figure}
+That is why --as it is reminded in figure~\ref{queuetable}-- the amortized cost of operations on the queue is $O(1)$.
 
 \paragraph{Internal structure}
 The implementation of mergeable queues is based on an \irmin store containing three types of element: \code{Index}, \code{Node} and \code{Elt}. Their type declarations are given in figure~\ref{queuesig}.
@@ -261,8 +249,33 @@ They are composed of four optional elements, \code{next}, \code{previous}, \code
 
 Finally, \code{Elt} contains elements added to the queue.
 
+\begin{figure}[hbt]
+%\begin{lstlisting}
+%type index = {              type node = {
+%  push: int;                  next: K.t option;
+%  pop: int;                   previous: K.t option;
+%  top: K.t;                   elt: K.t option;
+%  bottom: K.t;                branch: index option;
+%} with compare, sexp        } with compare, sexp
+%
+%type elt = Index of index | Node of node | Elt of V.t
+%           with compare, sexp
+%\end{lstlisting}
+\begin{lstlisting}
+type index = {              type node = {
+  push: int;                  next: K.t option;
+  pop: int;                   previous: K.t option;
+  top: K.t;                   elt: K.t option;
+  bottom: K.t;                branch: index option;
+}                           }
 
-\paragraph{Major operations}
+type elt = Index of index | Node of node | Elt of V.t
+\end{lstlisting}
+\caption{Type declaration of mergeable queue structuring elements. The \irmin store is specialized in order to containing such elements.}
+\label{queuesig}
+\end{figure}
+
+\paragraph{Major operation}
 The two first main operations on a queue are push and pop.
 The push operation adds a new \code{Elt} containing the pushed value, and a \code{Node} pointing to this element and the previous bottom element of the queue.
 It returns a new \code{Index} where the bottom element is the new created \code{Node}.
@@ -282,7 +295,7 @@ In the worst case, the merge operation uses a number of reads linear in the size
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[scale=0.6]{images/queue.pdf}
+\includegraphics[scale=0.8]{images/queue.pdf}
 \caption{Example of a possible queue internal structure. Here, the main queue is accessible through the index \code{I0}. The index \code{I1} is pointing to a queue concatenated during a previous merge operation. This queue will be unfolded during the next normalization. Because of the \irmin store behavior,  two nodes containing the same element share its physical representation.}
 \label{queuegraph}
 \end{figure}
@@ -359,7 +372,7 @@ Indeed, because such a rope can be built on any type of container, it is impossi
 %\end{figure}
 
 \paragraph{Implementation overview}
-The implementation of mergeable ropes is quite straightforward, in the sense that it follows the previous description.
+The implementation of mergeable ropes is quite straightforward, in the sense that it follows the previous description, and its signature is given in appendix~\ref{appendixrope}.
 The tree containing the rope is a self-balancing binary search tree which keeps a factor of two between its minimal and maximal depth.
 To implement such tree, the \irmin store is specialized in order to contain three types of elements.
 As in mergeable queue, \code{Index} are accessors to the data structure.
@@ -472,18 +485,19 @@ The average of intersection points indicates the solution that we looking for.
 \label{interpolation}
 \end{figure}
 
-\FloatBarrier
-
 \section{Conclusion and future works}
 
 At the end of my internship, I have implemented mergeable queues and ropes, and an \irmin \obj backend.
 I have also run several benchmark tests which provided several useful result.
 
-In the future, I plan to keep collaborating with the MirageOS team by maintaining and improving the libraries I have released during my internship.
+In the future, I plan to keep collaborating with the \mirage team by maintaining and improving the libraries I have released during my internship.
 For instance, I would like to improve the implementation of the mergeable queues, in order to reach a $\log(n)$ complexity for the merge operation.
 I would also like to work on the use GADTs in order to reduce the cost of several operations.
+
 During my internship, I have also designed a very first draft of a mergeable priority heap, that I would like to try to properly implement and release.
 Finally, produce some concrete use case of my data structure could be a long-term project.
+
+\FloatBarrier
 
 \nocite{*}
 \bibliographystyle{plain}

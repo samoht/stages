@@ -32,6 +32,7 @@
 \newcommand{\lwt}{Lwt\xspace}
 \newcommand{\mercurial}{Mercurial\xspace}
 \newcommand{\mirage}{Mirage\xspace}
+\newcommand{\obj}{Obj\xspace}
 \newcommand{\ocaml}{OCaml\xspace}
 \newcommand{\opam}{OPAM\xspace}
 \newcommand{\xen}{Xen\xspace}
@@ -422,7 +423,7 @@ Finally, we can see several spikes, which are the consequences of the complex in
 \begin{figure}[hbt]
 \centering
 \includegraphics[scale=0.6]{images/rope_duration.pdf}
-\caption{Needed time for one operation on a rope of size $n$ on the Obj backend~(see later)}
+\caption{Needed time for one operation on a rope of size $n$ on the \obj backend~(see later)}
 \label{ropeduration}
 \end{figure}
 
@@ -433,14 +434,14 @@ On this graph, \emph{Memory} refers to the in RAM backend.
 \emph{GitMem} and \emph{GitDsk} respectively refer to a \git backend, in the first case instantiate in the memory, on the hard drive in the second case.
 
 The two last are a slightly different.
-\emph{Obj} is backend based on the \ocaml module Obj that I have implemented.
+\emph{\obj} is backend based on the \ocaml module \obj that I have implemented.
 The idea is to directly manipulate the \ocaml heap.
 In a sense, that gives the raw cost of the algorithm.
 Its implementation is given in appendix~\ref{appendixobj}.
 Finally \emph{Core} is not strictly a backend because it refers in fact to the implementation of functional queue in the Core library.
 It is used here as a sort of optimal case, in a matter of comparison.
 
-As we can see, there is a factor five between Core and the implementation of my queue on the Obj backend.
+As we can see, there is a factor five between Core and the implementation of my queue on the \obj backend.
 It is an acceptable price to pay for maintaining a mergeable data structure.
 
 \begin{figure}[hbt]
@@ -473,13 +474,14 @@ The average of intersection points indicates the solution that we looking for.
 
 \FloatBarrier
 
-\section{Future works}
+\section{Conclusion and future works}
 
-At this stage of my internship, I have already implemented mergeable queues and ropes.
-In the next few weeks, I first plan to improve the implementation of the mergeable ropes, which is not yet optimal.
-Then I will work on a mergeable version of the priority heap data structure.
-%Finally, I plan to implement an hack of the \ocaml memory which will allow to use it as a database.
-After that, if there is still remaining time, I will work on some concrete use cases of my data structures.
+At the end of my internship, I have implemented mergeable queues and ropes, and an \irmin \obj backend.
+I have also run several benchmark tests which provided several useful result.
+
+In the near future, I first plan to improve the implementation of the mergeable queues, in order to reach a $\log(n)$ complexity for the merge operation.
+Then, I would like to work on the possibility of using GADTs in order to reduce the cost of several operations.
+After that, if I have some time left, I will work on a mergeable version of the priority heap data structure and on some concrete use cases of my data structures.
 
 \nocite{*}
 \bibliographystyle{plain}
@@ -656,7 +658,7 @@ module Make
 \bigskip
 
 
-\subsection{Obj backend implementation\label{appendixobj}}
+\subsection{\obj backend implementation\label{appendixobj}}
 \begin{lstlisting}
 module ObjBackend
     (K: IrminKey.S)

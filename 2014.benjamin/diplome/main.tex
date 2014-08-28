@@ -14,6 +14,7 @@
 %\usepackage[toc, nonumberlist, nopostdot]{glossaries}
 %\loadglsentries{glossary}
 %\makeglossaries
+\usepackage{placeins}
 
 \usepackage[colorlinks=true, citecolor=black, linkcolor=black, urlcolor=blue]{hyperref}
 
@@ -46,7 +47,7 @@
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[scale=0.8]{mirage-stack.pdf}
+\includegraphics[scale=0.8]{images/mirage-stack.pdf}
 \caption{Contrasting software layers in existing VM appliances vs. unikernel’s standalone kernel compilation approach.}
 \label{miragestackgraph}
 \end{figure}
@@ -280,7 +281,7 @@ In the worst case, the merge operation uses a number of reads linear in the size
 
 \begin{figure}[hbt]
 \centering
-\includegraphics[scale=0.6]{queue.pdf}
+\includegraphics[scale=0.6]{images/queue.pdf}
 \caption{Example of a possible queue internal structure. Here, the main queue is accessible through the index \code{I0}. The index \code{I1} is pointing to a queue concatenated during a previous merge operation. This queue will be unfolded during the next normalization. Because of the \irmin store behavior,  two nodes containing the same element share its physical representation.}
 \label{queuegraph}
 \end{figure}
@@ -404,10 +405,73 @@ And because a merge preserves the aforementioned property, we can verify the cor
 These tests have successfully guaranteed the good behaviors of my implementation of queues and ropes data structures.
 But they are not sufficient to ensure that the theoretical complexity is reached.
 In addition, I therefore designed several benchmark tests in order to validate this last point.
-Aside from showing the theoretical complexity is reached, these tests highlight some other interesting properties.
+Aside from showing the theoretical complexity is reached, these tests highlight some other interesting facts.
 
 
 \subsection{Benchmarking}
+
+\paragraph{Performance analysis}
+The most obvious interest of benchmark tests is to measure the needed time of a given operation.
+The figure~\ref{ropeduration} shows the result of one of these tests.
+As a first glance, we can see that the theoretical complexity is reached for every operations.
+Then we can see a general stair behaviors.
+This one is due to the internal tree representation.
+Indeed, at each a step a new level is needed in this tree in order to represent the whole rope.
+Finally, we can see several spikes, which are the consequences of the complex interactions between the balancing property and maintaining a leaf length proportional to the depth of the tree.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{images/rope_duration.pdf}
+\caption{Needed time for one operation on a rope of size $n$ on the Obj backend~(see later)}
+\label{ropeduration}
+\end{figure}
+
+\paragraph{Backend comparison}
+As \irmin can be instantiated on different backends, it may be interesting to compare their relative performances.
+The figure~\ref{queuebackend} shows the result of a same test run on different backends.
+On this graph, \emph{Memory} refers to the in RAM backend.
+\emph{GitMem} and \emph{GitDsk} respectively refer to a \git backend, in the first case instantiate in the memory, on the hard drive in the second case.
+
+The two last are a slightly different.
+\emph{Obj} is backend based on the \ocaml module Obj that I have implemented.
+The idea is to directly manipulate the \ocaml heap.
+In a sense, that gives the raw cost of the algorithm.
+Its implementation is given in appendix~\ref{appendixobj}.
+Finally \emph{Core} is not strictly a backend because it refers in fact to the implementation of functional queue in the Core library.
+It is used here as a sort of optimal case, in a matter of comparison.
+
+As we can see, there is a factor five between Core and the implementation of my queue on the Obj backend.
+It is an acceptable price to pay for maintaining a mergeable data structure.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{images/queue_backend.pdf}
+\includegraphics[scale=0.6]{images/queue_zoom.pdf}
+\caption{Time needed for $n$ push followed by $n$ pop on different backends}
+\label{queuebackend}
+\end{figure}
+
+\paragraph{IO cost estimation}
+A last original use of benchmarks is the possibility to determine the time needed for a read and a write on different backends.
+Indeed, my rope implementation is able to produce some statistics about the number of read and write used in each operation.
+Some results of this statistics are given in the figure~\ref{ropereadwrite}.
+
+Aside from highlighting the obvious fact that the cost of an operation is proportional to the number of read and write, we can see that the relative proportion of read and write is different in each operation.
+Knowing the time needed for one operation, these proportions give us a linear system of four independent equation where variables are the time needed for a read and a write, represented in figure~\ref{interpolation}.
+The average of intersection points indicates the solution that we looking for.
+
+\begin{figure}[hbt]
+\centering
+\includegraphics[scale=0.6]{images/rope_readwrite.pdf}
+\caption{Number of read/write used during one operation on a rope of size $n$.}
+\label{ropereadwrite}
+\includegraphics[scale=0.6]{images/git_interp.pdf}
+\includegraphics[scale=0.6]{images/mem_interp.pdf}
+\caption{Let $x$ be the time needed for one read, $y$ the time needed for one write and $d$ the time needed for one operation on a rope. Then the above curves --where colors match with the previous figure-- are the plot of the equation: $x * \mbox{nrb of read} + y * \mbox{nbr of write} = d$}
+\label{interpolation}
+\end{figure}
+
+\FloatBarrier
 
 \section{Future works}
 
@@ -592,7 +656,7 @@ module Make
 \bigskip
 
 
-\subsection{Obj backend implementation}
+\subsection{Obj backend implementation\label{appendixobj}}
 \begin{lstlisting}
 module ObjBackend
     (K: IrminKey.S)

@@ -1,0 +1,32 @@
+\documentclass{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{charter}
+
+\usepackage{xspace}
+\newcommand{\git}{Git\xspace}
+\newcommand{\irmin}{Irmin\xspace}
+\newcommand{\mirage}{MirageOS}
+
+\begin{document}
+
+\begin{abstract}
+%Nowadays, typical applications spawn a large set of heterogeneous computing and storage devices with very different technical properties.
+%Distributed applications running on these devices need to be able to choose between different kinds of policies:
+%Where to store what ? What level of trust? When to migrate data ?
+%Irmin is a library to persist and synchronize distributed data structures.
+%It is, as are all other components of Mirage OS, a collection of libraries designed to solve different flavours of the challenges raised by the CAP theorem.
+
+\irmin, the new \git-like storage layer of \mirage, is library to persist and synchronize distributed data structures.
+It is, as are all other components of \mirage, a collection of libraries designed to solve different flavours of challenges.
+In the case of \irmin, this challenges are those raised by the CAP theorem.
+The solution provided by \irmin involve merging data structures.
+
+In this paper, we (I?) present two first mergeable data structure -- the queue and the rope data structures --, directly built on the top of the internal \irmin store.
+After explaining the algorithm behind both of them, I will analyse these data structure in terms of correctness and efficiency.
+
+\end{abstract}
+
+\end{document}

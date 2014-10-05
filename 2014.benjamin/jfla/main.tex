@@ -24,6 +24,7 @@
 \author{Benjamin Farinier}
 \date{19/05/2014 -- 15/08/2014}
 
+\newcommand{\coq}{Coq\xspace}
 \newcommand{\irmin}{Irmin\xspace}
 \newcommand{\git}{Git\xspace}
 \newcommand{\lwt}{Lwt\xspace}
@@ -180,18 +181,29 @@ One of them is the use of data structures with custom merge operators.
 The idea is to give an abstraction of the \irmin low-level store as a high-level data structure.
 In addition of their classical operations, these data structure include the merge operation mentioned earlier. 
 In this paper, we will considered queue and rope data structures.
-
 These data structures and their associated operations have already been widely studied, even in a pure functional context\cite{PurelyFunctionalDataStructures1996}.
 \textbf{That is why the purpose of this work is not to compete with existing implementations of such data structures, but to extend them with an efficient and consistent merge operation.}
 
+As there is several way to implement a merge on these data structures, we first have to define what should do a good merge operation.
+The paradigm that we had in mind when we developed our mergeable data structures can be sum up by the following sentence:
 
+\smallskip
+\begin{tabular}{|c}
+\begin{minipage}{0.9\textwidth}
+Given two data structures to be merged, the result of every operations applied on these structures since their common ancestor has to be present in the result of the merge operation.
+\end{minipage}
+\end{tabular}
+\smallskip
+
+\noindent Even though no formal are provided, we claim that merge algorithms detailed in this paper are consistent to this principle.
+A future work could be to translate these algorithms into a proof assistant such as \coq in order to assert them.
 
 \subsection{Queues}
 
 There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
 However, \irmin is built on an append-only low-level store.
 Such representations of the memory matches well with the functional programming model where the memory is immutable.
-For this reason I design these mergeable queues as functional queues.
+For this reason we design these mergeable queues as functional queues.
 The exposed signature is presented in appendix~\ref{appendixqueue}.
 
 \begin{figure}[hbt]

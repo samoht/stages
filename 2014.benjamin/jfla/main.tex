@@ -200,6 +200,19 @@ A future work could be to translate these algorithms into a proof assistant such
 
 \subsection{Queues}
 
+The first data structure we chose to implement is the queue.
+Two main reasons led to this choice.
+The first one is the wide use of this data type, and so the large choice of possible case example.
+A basic one could be a queue of operations to be done, distributed between several operators.
+In case of overload, a new operator could spawn and clone the queue in order to share and ease the work of other operators.
+The second reason is the simplicity of the merge behaviour representation.
+Indeed, the previously given merge principle can be --in the case of queues-- specialized in this way:
+\begin{itemize}
+	\item Every element popped in one of the two queues to be merged has to be absent in the resulting queue.
+	\item All of the elements pushed in one of the queues have to be present in the result in the same order.
+\end{itemize}
+
+
 There are several efficient implementations of queues that can perform enqueuing (or \emph{push}) and dequeuing (or \emph{pop}) operations in $O(1)$ time.
 However, \irmin is built on an append-only low-level store.
 Such representations of the memory matches well with the functional programming model where the memory is immutable.
